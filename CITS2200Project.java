@@ -4,162 +4,34 @@
 
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
 
-public class Graph {
-
-	// Adjacency list of the edges in the graph
-	// Basically a list of all Adjacent vertices
-	public ArrayList<LinkedList<Integer>> listOfEdges;
-
-	// List of all the vertices
-	public LinkedList<String> listOfVertices;
-
-	
-	private static final int INFINITY = Integer.MAX_VALUE;
-
-	public Graph() {
-		listOfEdges = new ArrayList<LinkedList<Integer>>();
-		listOfVertices = new LinkedList<String>();
-	}
-
-	// Adds an edge to the Wikipedia page graph.
-	// If the pages do not already exist in the graph, they will be added to the graph.
-	// Using Graph_urlFrom and Graph_urlTo to differentiate that this is in graph class.
-	// Purely to help with searching of variables.
-	public void Graph_addEdge(String Graph_urlFrom, String Graph_urlTo) {
-
-		// Setting locations / indice to -1 because any positive value would mean that
-		// are in the list.
-		
-		// Initialising Location / Indice or the 'FROM' url
-		int locationFrom = -1;
-
-		// Initialising Location / Indice of the 'TO' url
-		int locationTo = -1;
-
-		for (int i = 0; i < listOfVertices.size(); i++) {
-			if (listOfVertices.get(i).equals(Graph_urlFrom)) {
-				locationFrom = i;
-			}
-
-			if (listOfVertices.get(i).equals(Graph_urlTo)) {
-				locationTo = i;
-			}
-
-			// The location of both urls have been found.
-			// No need to continue looking.
-			if (locationTo != -1 && locationFrom != -1) {
-				break;
-			}
-		}
-
-		// If the "from" vertex is not present in the graph, creates it
-		if (locationFrom == -1) {
-			// Adding the vertext to the list of vertices
-			listOfVertices.add(Graph_urlFrom);
-
-			// Appending to the array lift of linked lists
-			LinkedList<Integer> fromList = new LinkedList<Integer>();
-			locationFrom = listOfEdges.size();
-			fromList.add(locationFrom);
-			listOfEdges.add(fromList);
-		}
-
-		// If the "to" vertex is present in the graph, adds an edge from the "from"
-		// vertex to it
-		// else it creates the "to" vertex and then adds an edge from the "from" vertex
-		// to it
-		if (locationTo != -1) {
-			listOfEdges.get(locationFrom).add(locationTo);
-		}
-
-		else {
-			LinkedList<Integer> toList = new LinkedList<Integer>();
-
-			locationTo = listOfEdges.size();
-			toList.add(locationTo);
-			listOfEdges.get(locationFrom).add(locationTo);
-			listOfEdges.add(toList);
-			listOfVertices.add(Graph_urlTo);
-		}
-	}
-
-	// A method to return the index when the vertex is passed as a parameter,
-	// if not present, returns -1
-	public int getIndexOf(String str) {
-		for (int i = 0; i < listOfVertices.size(); i++)
-			if (listOfVertices.get(i).equals(str))
-				return i;
-		return -1;
-	}
-
-	// A method that returns 1 if the parameter "b" is present in the row of the
-	// adjacency list of the parent "a",
-	// else it returns INFINITY
-	public int getdist(int a, int b) {
-		if (listOfEdges.get(a).contains(b))
-			return 1;
-		return INFINITY;
-	}
-
-	public String getVertex(int i) {
-		return listOfVertices.get(i);
-	}
-
-	// ArrayList<LinkedList<Integer>> getEdge() //
-	// { return p; }
-
-	public LinkedList<Integer> getRow(int i) {
-		return listOfEdges.get(i);
-	}
-
-	public int getsize() {
-		return listOfVertices.size();
-	}
-
-	public static Graph transpose(Graph G) {
-		Graph RG = new Graph();
-
-		for (int i = 0; i < G.size(); i++) {
-			LinkedList<Integer> temp = new LinkedList<Integer>();
-
-			temp.add(i);
-			RG.listOfEdges.add(temp);
-			RG.listOfVertices.add(G.listOfVertices.get(i));
-		}
-
-		for (LinkedList<Integer> x : G.listOfEdges)
-			for (int child : x)
-				if (child != x.get(0))
-					RG.Graph_addEdge(G.getVertex(child), G.getVertex(x.get(0)));
-
-		return RG;
-	}
-}
-
 //###############################################################################################
 
 public class MyCits2200Project implements CITS2200Project {
 
-	private Graph graphObject;
+	public Graph graphObject;
+	public Graph graphObjectTransposed;
 
-	private static final int INFINITY = Integer.MAX_VALUE;
+	public static final int INFINITY = Integer.MAX_VALUE / 2;
 
 	public MyCITS2200Project() {
 		graphObject = new Graph();
+		graphObjectTransposed = new GraphTransposed();
 	}
 
 	public void addEdge(String urlFrom, String urlTo) {
 		graphObject.Graph_addEdge(urlFrom, urlTo);
+		graphObjectTransposed.Graph_addEdge(urlTo, urlFrom);
 	}
 
 	public int getShortestPath(String urlFrom, String urlTo) {
 		// Size of adjacency list
-		int nVertices = graphObject.getsize();
+		int nVertices = graphObject.getSize();
 
 		// Initalising distance between urlFrom and urlTo
 		int distanceFrom_To = -1;
@@ -168,39 +40,42 @@ public class MyCits2200Project implements CITS2200Project {
 		boolean foundUrlFrom = false;
 		boolean foundUrlTo = false;
 
+		// Initalising the index value of from
 		int from = -1;
 
 		// Checking to see if the arguements provided exist
 		for (int i = 0; i < nVertices; i++) {
-			if (urlFrom.eqquals(graphObject.getVertex(i))) {
+			if (urlFrom.equals(graphObject.getVertex(i))) {
+				from = i;
 				foundUrlFrom = true;
 			}
 			if (urlTo.equals(graphObject.getVertex(i))) {
-				from = i;
 				foundUrlTo = true;
 			}
 
 			// We have found that they exist hence stop searching
-			if(foundUrlFrom && foundUrlTo) {
+			if (foundUrlFrom && foundUrlTo) {
 				break;
 			}
 		}
 
 		// If any one of the url's provided do not exist then return -1
 		if (!foundUrlFrom || !foundUrlTo) {
-			return -1;
+			return distanceFrom_To;
 		}
 
+		// If urlFrom = urlTo then distance is 0
 		if (urlFrom == urlTo) {
 			distanceFrom_To = 0;
 			return distanceFrom_To;
 		}
 
 		Queue<Integer> queue = new LinkedList<Integer>();
+
 		boolean visited[] = new boolean[nVertices];
 		int distanceTo[] = new int[nVertices];
 
-		distanceTo[from] = 0;
+		// We have already visited ourselves
 		visited[from] = true;
 
 		queue.add(from);
@@ -208,12 +83,15 @@ public class MyCits2200Project implements CITS2200Project {
 		for (int i = 0; i < nVertices; i++) {
 			distanceTo[i] = INFINITY;
 		}
+		// Distance to itself is 0
+		distanceTo[from] = 0;
 
+		// Standard Breadth First Search Algorithm
 		while (!queue.isEmpty()) {
 
 			int v = queue.poll();
 
-			for (int i : graphObject.getRow(v)) {
+			for (int i : graphObject.getAdjList(v)) {
 				if (!visited[i]) {
 					distanceTo[i] = distanceTo[i] + 1;
 					visited[i] = true;
@@ -232,15 +110,118 @@ public class MyCits2200Project implements CITS2200Project {
 	public String[] getCenters() {
 	}
 
+	// A recursive function to print DFS starting from v
+	public void DFSUtil(int k, boolean visited[]) {
+		// Mark the current node as visited and print it
+		visited[k] = true;
+		System.out.print(k + " ");
+
+		int n;
+
+		// Recur for all the vertices adjacent to this vertex
+		Iterator<Integer> i = graphObjectTransposed.getAdjList(j).iterator();
+		while (i.hasNext()) {
+			n = i.next();
+			if (!visited[n]) {
+				DFSUtil(n, visited);
+			}
+		}
+	}
+
+	public void fillOrder(int j, boolean visited[], Stack stack) {
+
+		// Mark the current node as visited and print it
+		visited[j] = true;
+
+		// Recur for all the vertices adjacent to this vertex
+		Iterator<Integer> i = graphObject.getAdjList(j).iterator();
+		while (i.hasNext()) {
+			int n = i.next();
+			if (!visited[n]) {
+				fillOrder(n, visited, stack);
+			}
+		}
+
+		// All vertices reachable from v are processed by now,
+		// push v to Stack
+		stack.push(new Integer(j));
+	}
+
 	public String[][] getStronglyConnectedComponents() {
+
+		int nVertices = graphObject.getSize();
+
+		int nVerticesTransposed = graphObjectTransposed.getSize();
+
+		Stack stack = new Stack();
+
+		boolean visited[] = new boolean[V];
+
+		for (int i = 0; i < nVertices; i++) {
+			visited[i] = false;
+		}
+
+		for (int i = 0; i < nVertices; i++) {
+			if (!visited[i]) {
+				fillOrder(i, visited, stack);
+			}
+		}
+
+		for (int i = 0; i < nVerticesTransposed; i++) {
+			visited[i] = false;
+		}
+
+		while (!stack.empty()) {
+			// Pop a vertex from stack
+			int v = (int) stack.pop();
+
+			// Print Strongly connected component of the popped vertex
+			if (!visited[v]) {
+				DFSUtil(v, visited);
+				System.out.println();
+			}
+		}
+
 	}
 
 	public String[] getHamiltonianPath() {
 
-		nVertices = graphObject.getsize();
+		int nVertices = graphObject.getSize();
+
+		int a = (int) Math.pow(2, nVertices);
+
+		// Initialising an emepty array that will egt populated by the path.
 		String[] pathArray = new String[nVertices];
+		for (int i = 0; i < nVertices; i++) {
+			pathArray[i] = "";
+		}
 
 		boolean visited[] = new boolean[nVertices];
+
+		int[][] dp = new int[a][nVertices];
+
+		for (int i = 0; i < a; i++) {
+			for (int j = 0; j < nVertices; j++) {
+				dp[i][j] = INFINITY;
+			}
+		}
+
+		for (int i = 0; i < n; i++) {
+			dp[(int) Math.pow(2, i)][i] = 0;
+		}
+
+		for (int m = 0; m < a; m++) {
+			for (int i = 0; i < nVertices; i++) {
+				if ((m & (int) Math.pow(2, i)) != 0) {
+					for (int j = 0; j < nVertices; j++) {
+						if ((m & (int) Math.pow(2, j)) != 0) {
+							dp[m][i] = Math.min(dp[m][i],
+									dp[m ^ ((int) Math.pow(2, i))][j] + graphObject.getDist(j, i));
+						}
+					}
+				}
+			}
+		}
 
 	}
 }
@@ -299,4 +280,236 @@ public interface CITS2200Project {
 	 * @return a Hamiltonian path of the page graph.
 	 */
 	public String[] getHamiltonianPath();
+}
+
+class Graph {
+
+	// Adjacency list of the edges in the graph
+	// Basically a list of all Adjacent vertices
+	public ArrayList<LinkedList<Integer>> adjList;
+
+	// List of all the vertices
+	public LinkedList<String> vertexRowList;
+
+	private static final int INFINITY = Integer.MAX_VALUE / 2;
+
+	public Graph() {
+		adjList = new ArrayList<LinkedList<Integer>>();
+		vertexRowList = new LinkedList<String>();
+	}
+
+	// Adds an edge to the Wikipedia page graph.
+	// If the pages do not already exist in the graph, they will be added to the
+	// graph.
+	// Using Graph_urlFrom and Graph_urlTo to differentiate that this is in graph
+	// class.
+	// Purely to help with searching of variables.
+	public void Graph_addEdge(String Graph_urlFrom, String Graph_urlTo) {
+
+		// Setting locations / indice to -1 because any positive value would mean that
+		// are in the list.
+
+		// Initialising Location / Indice or the 'FROM' url
+		int locationFrom = -1;
+
+		// Initialising Location / Indice of the 'TO' url
+		int locationTo = -1;
+
+		// Checking if the page already exists in the adjcency list
+		// Doing this by comparing if the first value of ever list is the same as input.
+		for (int i = 0; i < vertexRowList.size(); i++) {
+			if (vertexRowList.get(i).equals(Graph_urlFrom)) {
+				locationFrom = i;
+			}
+
+			if (vertexRowList.get(i).equals(Graph_urlTo)) {
+				locationTo = i;
+			}
+
+			// Neither url exits in the
+			if (locationTo != -1 && locationFrom != -1) {
+				break;
+			}
+		}
+
+		// If the "from" vertex is not present in the graph, creates it
+		if (locationFrom == -1) {
+			// Adding the vertext to the list of vertices
+			vertexRowList.add(Graph_urlFrom);
+
+			// Appending to the array lift of linked lists
+			LinkedList<Integer> fromList = new LinkedList<Integer>();
+			locationFrom = adjList.size();
+			fromList.add(locationFrom);
+			adjList.add(fromList);
+		}
+
+		// If the "to" vertex is present in the graph, adds an edge from the "from"
+		// vertex to it
+		// else it creates the "to" vertex and then adds an edge from the "from" vertex
+		// to it
+		if (locationTo != -1) {
+			adjList.get(locationFrom).add(locationTo);
+		}
+
+		else {
+			LinkedList<Integer> toList = new LinkedList<Integer>();
+
+			locationTo = adjList.size();
+			toList.add(locationTo);
+			adjList.get(locationFrom).add(locationTo);
+			adjList.add(toList);
+			vertexRowList.add(Graph_urlTo);
+		}
+	}
+
+	// A method to return the index when the vertex is passed as a parameter,
+	// if not present, returns -1
+	public int getIndex(String pageName) {
+		for (int i = 0; i < vertexRowList.size(); i++) {
+			if (vertexRowList.get(i).equals(pageName)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	// A method that returns 1 if the parameter "b" is present in the row of the
+	// adjacency list of the parent "a",
+	// else it returns INFINITY
+	public int getDist(int a, int b) {
+		if (adjList.get(a).contains(b)) {
+			return 1;
+		}
+		return INFINITY;
+	}
+
+	public String getVertex(int i) {
+		return vertexRowList.get(i);
+	}
+
+	public LinkedList<Integer> getAdjList(int i) {
+		return adjList.get(i);
+	}
+
+	public int getSize() {
+		return vertexRowList.size();
+	}
+}
+
+// #############################################################################################
+
+class GraphTransposed {
+
+	// Adjacency list of the edges in the graph
+	// Basically a list of all Adjacent vertices
+	public ArrayList<LinkedList<Integer>> adjList;
+
+	// List of all the vertices
+	public LinkedList<String> vertexRowList;
+
+	private static final int INFINITY = Integer.MAX_VALUE / 2;
+
+	public Graph() {
+		adjList = new ArrayList<LinkedList<Integer>>();
+		vertexRowList = new LinkedList<String>();
+	}
+
+	// Adds an edge to the Wikipedia page graph.
+	// If the pages do not already exist in the graph, they will be added to the
+	// graph.
+	// Using Graph_urlFrom and Graph_urlTo to differentiate that this is in graph
+	// class.
+	// Purely to help with searching of variables.
+	public void Graph_addEdge(String Graph_urlFrom, String Graph_urlTo) {
+
+		// Setting locations / indice to -1 because any positive value would mean that
+		// are in the list.
+
+		// Initialising Location / Indice or the 'FROM' url
+		int locationFrom = -1;
+
+		// Initialising Location / Indice of the 'TO' url
+		int locationTo = -1;
+
+		// Checking if the page already exists in the adjcency list
+		// Doing this by comparing if the first value of ever list is the same as input.
+		for (int i = 0; i < vertexRowList.size(); i++) {
+			if (vertexRowList.get(i).equals(Graph_urlFrom)) {
+				locationFrom = i;
+			}
+
+			if (vertexRowList.get(i).equals(Graph_urlTo)) {
+				locationTo = i;
+			}
+
+			// Neither url exits in the
+			if (locationTo != -1 && locationFrom != -1) {
+				break;
+			}
+		}
+
+		// If the "from" vertex is not present in the graph, creates it
+		if (locationFrom == -1) {
+			// Adding the vertext to the list of vertices
+			vertexRowList.add(Graph_urlFrom);
+
+			// Appending to the array lift of linked lists
+			LinkedList<Integer> fromList = new LinkedList<Integer>();
+			locationFrom = adjList.size();
+			fromList.add(locationFrom);
+			adjList.add(fromList);
+		}
+
+		// If the "to" vertex is present in the graph, adds an edge from the "from"
+		// vertex to it
+		// else it creates the "to" vertex and then adds an edge from the "from" vertex
+		// to it
+		if (locationTo != -1) {
+			adjList.get(locationFrom).add(locationTo);
+		}
+
+		else {
+			LinkedList<Integer> toList = new LinkedList<Integer>();
+
+			locationTo = adjList.size();
+			toList.add(locationTo);
+			adjList.get(locationFrom).add(locationTo);
+			adjList.add(toList);
+			vertexRowList.add(Graph_urlTo);
+		}
+	}
+
+	// A method to return the index when the vertex is passed as a parameter,
+	// if not present, returns -1
+	public int getIndex(String pageName) {
+		for (int i = 0; i < vertexRowList.size(); i++) {
+			if (vertexRowList.get(i).equals(pageName)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	// A method that returns 1 if the parameter "b" is present in the row of the
+	// adjacency list of the parent "a",
+	// else it returns INFINITY
+	public int getDist(int a, int b) {
+		if (adjList.get(a).contains(b)) {
+			return 1;
+		}
+		return INFINITY;
+	}
+
+	public String getVertex(int i) {
+		return vertexRowList.get(i);
+	}
+
+	public LinkedList<Integer> getAdjList(int i) {
+		return adjList.get(i);
+	}
+
+	public int getSize() {
+		return vertexRowList.size();
+	}
 }
