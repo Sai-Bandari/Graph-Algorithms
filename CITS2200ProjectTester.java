@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class CITS2200ProjectTester2ACTUAL {
+public class CITS2200ProjectTester {
 	public static void loadGraph(CITS2200Project project, String path) {
 		// The graph is in the following format:
 		// Every pair of consecutive lines represent a directed edge.
@@ -22,7 +22,7 @@ public class CITS2200ProjectTester2ACTUAL {
 
 	public static void main(String[] args) {
 		// Change this to be the path to the graph file.
-		String pathToGraphFile = "C:\\Users\\Saiba\\Desktop\\medium_graph.txt";
+		String pathToGraphFile = "\\Users\\Saiba\\Desktop\\hamiltonian.txt";
 		// Create an instance of your implementation.
 		CITS2200Project proj = new MyCITS2200Project();
 		// Load the graph into the project.
@@ -41,7 +41,7 @@ public class CITS2200ProjectTester2ACTUAL {
 		
 	String[][] scc = proj.getStronglyConnectedComponents();
 	System.out.println(" ");
-	System.out.println("SCC's are");
+	
 	System.out.println(" ");
 	for(String[] a: scc){
 		for(String b:a){
@@ -55,10 +55,16 @@ public class CITS2200ProjectTester2ACTUAL {
 	for(String b:aa){
 		System.out.println( i++ + ": " +b);
 	}
+	
 	String ham[] = proj.getHamiltonianPath();
 	System.out.println("Hamilton Paths:");
-	System.out.println(getHamiltonianPath());
+	System.out.println(proj.getHamiltonianPath());
+	for(String k : ham) {
+		System.out.println(i);
 	}
+	
+	}
+	
 	
 	
 	
