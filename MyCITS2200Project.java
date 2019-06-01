@@ -99,7 +99,7 @@ public class MyCITS2200Project implements CITS2200Project {
 					queue.add(i);
 				}
 
-				if (graphObject.getVertex(i).equals(urlTo) ) {
+				if (graphObject.getVertex(i).equals(urlTo)) {
 					queue.clear();
 					distanceFrom_To = distanceTo[i];
 					return distanceFrom_To;
@@ -110,43 +110,44 @@ public class MyCITS2200Project implements CITS2200Project {
 	}
 
 	// Method for creating graph centers
+	
+	
 	public String[] getCenters() {
-		
+
 		// Number of vertives
 		int nVertices = graphObject.getSize();
-		
+
 		// A array that holds the average shortest path for each vertex
 		double[] minEcc = new double[nVertices];
-		
+
 		// An array that holds the values for pages that are the most eccentric
-		String[] centers =  new String[nVertices];
-		
-		
-		// Calculates the distance from a vertex to every other vertex using the shortest path 
+		String[] centers = new String[nVertices];
+
+		// Calculates the distance from a vertex to every other vertex using the
+		// shortest path
 		// algorithm that we have already implemented.
 		for (int i = 0; i < nVertices; i++) {
 			int lowestVal[] = new int[nVertices];
 			for (int j = 0; j < nVertices; j++) {
-				if ( i != j ) {
+				if (i != j) {
 					lowestVal[j] = getShortestPath(graphObject.getVertex(i), graphObject.getVertex(j));
-				}
-				else {
+				} else {
 					lowestVal[j] = INFINITY;
 				}
 			}
-			
-			// Calculates the average shortest path for a singular vertex 
+
+			// Calculates the average shortest path for a singular vertex
 			double Average = 0.0;
 			double averageCount = 0.0;
-			for (int k = 0; k < nVertices; k++ ) {
-				if (lowestVal[k] != INFINITY) {
+			for (int k = 0; k < nVertices; k++) {
+				if (lowestVal[k] != INFINITY && lowestVal[k] != -1 && lowestVal[k] != 0) {
 					Average += lowestVal[k];
 					averageCount++;
 				}
 			}
 			minEcc[i] = (Average / averageCount);
 		}
-		
+
 		// After calculating the averages we then looked for the smallest average value
 		// And though of it to be the most eccentric
 		for (int i = 0; i < nVertices; i++) {
@@ -161,7 +162,7 @@ public class MyCITS2200Project implements CITS2200Project {
 				centers[i] = graphObject.getVertex(i);
 			}
 		}
-		
+
 		// Since our array has been filled with null we cleaned it up
 		int count = 0;
 		for (int i = 0; i < nVertices; i++) {
@@ -178,27 +179,31 @@ public class MyCITS2200Project implements CITS2200Project {
 			}
 		}
 		
+				
 		// returning the actual array with the page of the most eccentricity
 		return actualCenters;
-		
+
 	}
 
 	// A recursive function to print DFS starting from v
-	public void DFSmethod(int k, boolean visited[], String[][]scc, int rowIndex, int loopCount) {
+	public ArrayList<String> DFSmethod(int k, boolean visited[], ArrayList<String> sccc, int rowIndex, int loopCount) {
 		// Mark the current node as visited and print it
 		visited[k] = true;
 
 		String page = graphObjectTransposed.getVertex(k);
-		System.out.print(page + " ");
+
+		// Adding the page to an arraylist
+		sccc.add(page);
 
 		// Recur for all the vertices adjacent to this vertex
 		Iterator<Integer> i = graphObjectTransposed.getAdjList(k).iterator();
 		while (i.hasNext()) {
 			int n = i.next();
 			if (!visited[n]) {
-				DFSmethod(n, visited, scc, rowIndex++, loopCount);
+				DFSmethod(n, visited, sccc, rowIndex++, loopCount);
 			}
 		}
+		return sccc;
 	}
 
 	public void FO(int j, boolean visited[], Stack stack) {
@@ -219,32 +224,6 @@ public class MyCITS2200Project implements CITS2200Project {
 		// push v to Stack
 		stack.push(new Integer(j));
 	}
-	
-	
-	// Method for removing null from our 2d array
-	public static String[][] removeNull( String[][] arr2d) {
-        //
-        ArrayList<ArrayList<String>> list2d = new ArrayList<ArrayList<String>>();
-        //
-        for(String[] arr1d: arr2d){
-            ArrayList<String> list1d = new ArrayList<String>();
-            for(String s: arr1d){
-                if(s != null && s.length() > 0) {
-                    list1d.add(s);
-                }
-            }
-            // Removing empty 2d array
-            if(list1d.size()>0){
-                list2d.add(list1d);
-            }
-        }
-        String[][] cleanArr = new String[list2d.size()][];
-        int next = 0;
-        for(ArrayList<String> list1d: list2d){
-            cleanArr[next++] = list1d.toArray(new String[list1d.size()]);
-        }
-        return cleanArr;
-    }
 
 	public String[][] getStronglyConnectedComponents() {
 
@@ -253,8 +232,10 @@ public class MyCITS2200Project implements CITS2200Project {
 		int nVerticesTransposed = graphObjectTransposed.getSize();
 
 		Stack stack = new Stack();
-		
-		String[][] scc = new String[nVertices+1][nVertices+1];
+
+		// An array list to store the array list of scc pages
+		// This will later be coverted into an array
+		ArrayList<ArrayList<String>> scc = new ArrayList<ArrayList<String>>();
 
 		boolean visited[] = new boolean[nVertices];
 
@@ -271,7 +252,7 @@ public class MyCITS2200Project implements CITS2200Project {
 		for (int i = 0; i < nVerticesTransposed; i++) {
 			visited[i] = false;
 		}
-		
+
 		int loopCount = -1;
 		int rowIndex = 0;
 
@@ -279,91 +260,95 @@ public class MyCITS2200Project implements CITS2200Project {
 			loopCount++;
 
 			// Pop a vertex from stack
-			int v = (int)stack.pop();
+			int v = (int) stack.pop();
 
 			// Print Strongly connected component of the popped vertex
 			if (!visited[v]) {
-				DFSmethod(v, visited, scc, rowIndex, loopCount);
-				System.out.println();
+				ArrayList<String> sccc = new ArrayList<String>();
+				sccc = DFSmethod(v, visited, sccc, rowIndex, loopCount);
+				scc.add(sccc);
 			}
 		}
-		
-		// Commented out another way to remove nulls from our array
-//		for(int i = 0; i < scc.length; i++) {
-//		    String[] inner = scc[i];
-//		    List<String> list = new ArrayList<String>(inner.length);
-//		    for(int j = 0; j < inner.length; j++){
-//		        if(inner[j] != null){
-//		            list.add(inner[j]);
-//		        }
-//		    }
-//		    scc[i] = list.toArray(new String[list.size()]);
-//		}
-//		List<String[]> outerList = new ArrayList<String[]>(scc.length);
-//		for(int i = 0; i < scc.length; i++) {
-//			String[] inner = scc[i];
-//		    if (inner != null) {
-//		        List<String> list = new ArrayList<String>(inner.length);
-//		        for(int j=0; j < inner.length; j++){
-//		            if(inner[j] != null){
-//		                list.add(inner[j]);
-//		            }
-//		        }
-//		        outerList.add(list.toArray(new String[list.size()]));
-//		    }
-//		}
-//		scc = outerList.toArray(new String[outerList.size()][]);
-		
-		return removeNull(scc);
+
+		// Connecting the arraylist to array
+		String[][] array = new String[scc.size()][];
+		for (int i = 0; i < scc.size(); i++) {
+			ArrayList<String> row = scc.get(i);
+			array[i] = row.toArray(new String[row.size()]);
+		}
+
+		// returning that array
+		return array;
 
 	}
 
-	public String[] getHamiltonianPath() {
-		String z[] = new String[1];
-		z[0] = "Hello";
-		return z;
+	// Helper method that gets that works recoursiely to find the Hamiltonian path by using every vertex as
+	// a starting point
+	
+	public String[] getHamPath(Graph g, int vertexV, boolean[] visited, List<Integer> path, int nVertices,
+			String[] ham) {
+
+		// If all the vertices are visited, then hamiltonian path exists
+		if (path.size() == nVertices) {
+			// print hamiltonian path
+			for (int i : path) {
+				System.out.println(g.getVertex(i));
+				ham[i] = g.getVertex(i);
+			}
+			System.out.println();
+			return ham;
+		}
+
+		// Check if every edge from vertex v leads to a solution
+		for (int w : g.adjList.get(vertexV)) {
+			// Process only unvisited vertices as hamiltonian path visits each vertex exactly once
+			if (!visited[w]) {
+				visited[w] = true;
+				path.add(w);
+
+				// Checking if adding vertex adjacent vertext lead to a hamiltonian path
+				getHamPath(g, w, visited, path, nVertices, ham);
+
+				// Backtracking
+				visited[w] = false;
+				path.remove(path.size() - 1);
+			}
+		}
 		
-		// TODO:
-//		int nVertices = graphObject.getSize();
-//
-//		int a = (int)Math.pow(2, nVertices);
-//
-//		// Initialising an emepty array that will egt populated by the path.
-//		String[] pathArray = new String[nVertices];
-//		for (int i = 0; i < nVertices; i++) {
-//			pathArray[i] = "";
-//		}
-//
-//		boolean visited[] = new boolean[nVertices];
-//
-//		int[][] dp = new int[a][nVertices];
-//
-//		for (int i = 0; i < a; i++) {
-//			for (int j = 0; j < nVertices; j++) {
-//				dp[i][j] = INFINITY;
-//			}
-//		}
-//
-//		for (int i = 0; i < nVertices; i++) {
-//			dp[a][i] = 0;
-//		}
-//
-//		for (int m = 0; m < a; m++) {
-//			for (int i = 0; i < nVertices; i++) {
-//				if ((m & a) != 0) {
-//					for (int j = 0; j < nVertices; j++) {
-//						if ((m & a) != 0) {
-//							dp[m][i] = Math.min(dp[m][i],dp[m ^ (a)][j] + graphObject.getDist(j, i));
-//						}
-//					}
-//				}
-//			}
-//		}
-//		
-//		int numberOfVerticesInPath = 0;
-//		for (int i = 0; i < nVertices; i++) {
-//			if (dp[a][numberOfVerticesInPath] < )
-//		}
+		
+		return ham;
+	}
+	
+	
+
+	public String[] getHamiltonianPath() {
+
+		// Starting vertex
+		int start = 0;
+
+		int nVertices = graphObject.getSize();
+
+		// Add the starting vertex to an arraylist
+		List<Integer> path = new ArrayList<>();
+		path.add(start);
+
+		// mark start node as visited
+		boolean[] visited = new boolean[nVertices];
+		visited[start] = true;
+
+		String[] ham = new String[nVertices];
+
+		getHamPath(graphObject, start, visited, path, nVertices, ham);
+
+		for (String i : ham) {
+			if (i == null) {
+				return new String[0];
+			}
+		}
+		
+
+		return ham;
+
 	}
 }
 
@@ -446,27 +431,6 @@ class Graph {
 			adjList.add(toList);
 			vertexRowList.add(Graph_urlTo);
 		}
-	}
-
-	// A method to return the index when the vertex is passed as a parameter,
-	// if not present, returns -1
-	public int getIndex(String pageName) {
-		for (int i = 0; i < vertexRowList.size(); i++) {
-			if (vertexRowList.get(i).equals(pageName)) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	// A method that returns 1 if the parameter "b" is present in the row of the
-	// adjacency list of the parent "a",
-	// else it returns INFINITY
-	public int getDist(int a, int b) {
-		if (adjList.get(a).contains(b)) {
-			return 1;
-		}
-		return INFINITY;
 	}
 
 	public String getVertex(int i) {
@@ -563,27 +527,6 @@ class GraphTransposed {
 			adjList.add(toList);
 			vertexRowList.add(Graph_urlTo);
 		}
-	}
-
-	// A method to return the index when the vertex is passed as a parameter,
-	// if not present, returns -1
-	public int getIndex(String pageName) {
-		for (int i = 0; i < vertexRowList.size(); i++) {
-			if (vertexRowList.get(i).equals(pageName)) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	// A method that returns 1 if the parameter "b" is present in the row of the
-	// adjacency list of the parent "a",
-	// else it returns INFINITY
-	public int getDist(int a, int b) {
-		if (adjList.get(a).contains(b)) {
-			return 1;
-		}
-		return INFINITY;
 	}
 
 	public String getVertex(int i) {
