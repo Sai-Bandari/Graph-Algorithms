@@ -55,6 +55,9 @@ public class CITS2200ProjectTester2ACTUAL {
 	for(String b:aa){
 		System.out.println( i++ + ": " +b);
 	}
+	String ham[] = proj.getHamiltonianPath();
+	System.out.println("Hamilton Paths:");
+	System.out.println(getHamiltonianPath());
 	}
 	
 	
