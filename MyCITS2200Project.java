@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 
@@ -105,13 +106,81 @@ public class MyCITS2200Project implements CITS2200Project {
 				}
 			}
 		}
-		return 5;
+		return distanceFrom_To;
 	}
 
+	// Method for creating graph centers
 	public String[] getCenters() {
-		String a[] = new String[1];
-		a[0] = "Hello";
-		return a;
+		
+		// Number of vertives
+		int nVertices = graphObject.getSize();
+		
+		// A array that holds the average shortest path for each vertex
+		double[] minEcc = new double[nVertices];
+		
+		// An array that holds the values for pages that are the most eccentric
+		String[] centers =  new String[nVertices];
+		
+		
+		// Calculates the distance from a vertex to every other vertex using the shortest path 
+		// algorithm that we have already implemented.
+		for (int i = 0; i < nVertices; i++) {
+			int lowestVal[] = new int[nVertices];
+			for (int j = 0; j < nVertices; j++) {
+				if ( i != j ) {
+					lowestVal[j] = getShortestPath(graphObject.getVertex(i), graphObject.getVertex(j));
+				}
+				else {
+					lowestVal[j] = INFINITY;
+				}
+			}
+			
+			// Calculates the average shortest path for a singular vertex 
+			double Average = 0.0;
+			double averageCount = 0.0;
+			for (int k = 0; k < nVertices; k++ ) {
+				if (lowestVal[k] != INFINITY) {
+					Average += lowestVal[k];
+					averageCount++;
+				}
+			}
+			minEcc[i] = (Average / averageCount);
+		}
+		
+		// After calculating the averages we then looked for the smallest average value
+		// And though of it to be the most eccentric
+		for (int i = 0; i < nVertices; i++) {
+			double newMinimumVal = minEcc[0];
+			if (minEcc[i] == newMinimumVal) {
+				centers[i] = graphObject.getVertex(i);
+			}
+			if (minEcc[i] < newMinimumVal) {
+				for (int j = 0; j < minEcc.length; j++) {
+					centers[j] = null;
+				}
+				centers[i] = graphObject.getVertex(i);
+			}
+		}
+		
+		// Since our array has been filled with null we cleaned it up
+		int count = 0;
+		for (int i = 0; i < nVertices; i++) {
+			if (centers[i] != null) {
+				count++;
+			}
+		}
+		String actualCenters[] = new String[count];
+		count = 0;
+		for (int i = 0; i < nVertices; i++) {
+			if (centers[i] != null) {
+				actualCenters[count] = centers[i];
+				count++;
+			}
+		}
+		
+		// returning the actual array with the page of the most eccentricity
+		return actualCenters;
+		
 	}
 
 	// A recursive function to print DFS starting from v
@@ -119,13 +188,8 @@ public class MyCITS2200Project implements CITS2200Project {
 		// Mark the current node as visited and print it
 		visited[k] = true;
 
-		
-		
 		String page = graphObjectTransposed.getVertex(k);
 		System.out.print(page + " ");
-
-		//scc[loopCount][rowIndex] = page;
-
 
 		// Recur for all the vertices adjacent to this vertex
 		Iterator<Integer> i = graphObjectTransposed.getAdjList(k).iterator();
@@ -156,6 +220,8 @@ public class MyCITS2200Project implements CITS2200Project {
 		stack.push(new Integer(j));
 	}
 	
+	
+	// Method for removing null from our 2d array
 	public static String[][] removeNull( String[][] arr2d) {
         //
         ArrayList<ArrayList<String>> list2d = new ArrayList<ArrayList<String>>();
@@ -167,8 +233,7 @@ public class MyCITS2200Project implements CITS2200Project {
                     list1d.add(s);
                 }
             }
-            // you will possibly not want empty arrays in your 2d array
-            // so I removed them
+            // Removing empty 2d array
             if(list1d.size()>0){
                 list2d.add(list1d);
             }
@@ -189,7 +254,7 @@ public class MyCITS2200Project implements CITS2200Project {
 
 		Stack stack = new Stack();
 		
-		String[][] scc = new String[nVertices][nVertices];
+		String[][] scc = new String[nVertices+1][nVertices+1];
 
 		boolean visited[] = new boolean[nVertices];
 
@@ -219,9 +284,35 @@ public class MyCITS2200Project implements CITS2200Project {
 			// Print Strongly connected component of the popped vertex
 			if (!visited[v]) {
 				DFSmethod(v, visited, scc, rowIndex, loopCount);
-				//System.out.println();
+				System.out.println();
 			}
 		}
+		
+		// Commented out another way to remove nulls from our array
+//		for(int i = 0; i < scc.length; i++) {
+//		    String[] inner = scc[i];
+//		    List<String> list = new ArrayList<String>(inner.length);
+//		    for(int j = 0; j < inner.length; j++){
+//		        if(inner[j] != null){
+//		            list.add(inner[j]);
+//		        }
+//		    }
+//		    scc[i] = list.toArray(new String[list.size()]);
+//		}
+//		List<String[]> outerList = new ArrayList<String[]>(scc.length);
+//		for(int i = 0; i < scc.length; i++) {
+//			String[] inner = scc[i];
+//		    if (inner != null) {
+//		        List<String> list = new ArrayList<String>(inner.length);
+//		        for(int j=0; j < inner.length; j++){
+//		            if(inner[j] != null){
+//		                list.add(inner[j]);
+//		            }
+//		        }
+//		        outerList.add(list.toArray(new String[list.size()]));
+//		    }
+//		}
+//		scc = outerList.toArray(new String[outerList.size()][]);
 		
 		return removeNull(scc);
 
@@ -231,7 +322,8 @@ public class MyCITS2200Project implements CITS2200Project {
 		String z[] = new String[1];
 		z[0] = "Hello";
 		return z;
-
+		
+		// TODO:
 //		int nVertices = graphObject.getSize();
 //
 //		int a = (int)Math.pow(2, nVertices);
@@ -267,65 +359,13 @@ public class MyCITS2200Project implements CITS2200Project {
 //				}
 //			}
 //		}
-
+//		
+//		int numberOfVerticesInPath = 0;
+//		for (int i = 0; i < nVertices; i++) {
+//			if (dp[a][numberOfVerticesInPath] < )
+//		}
 	}
 }
-
-//public interface CITS2200Project {
-//
-//	/**
-//	 * Adds an edge to the Wikipedia page graph. If the pages do not already exist
-//	 * in the graph, they will be added to the graph.
-//	 * 
-//	 * @param urlFrom the URL which has a link to urlTo.
-//	 * @param urlTo   the URL which urlFrom has a link to.
-//	 */
-//	public void addEdge(String urlFrom, String urlTo);
-//
-//	/**
-//	 * Finds the shorest path in number of links between two pages. If there is no
-//	 * path, returns -1.
-//	 * 
-//	 * @param urlFrom the URL where the path should start.
-//	 * @param urlTo   the URL where the path should end.
-//	 * @return the legnth of the shorest path in number of links followed.
-//	 */
-//	public int getShortestPath(String urlFrom, String urlTo);
-//
-//	/**
-//	 * Finds all the centers of the page graph. The order of pages in the output
-//	 * does not matter. Any order is correct as long as all the centers are in the
-//	 * array, and no pages that aren't centers are in the array.
-//	 * 
-//	 * @return an array containing all the URLs that correspond to pages that are
-//	 *         centers.
-//	 */
-//	public String[] getCenters();
-//
-//	/**
-//	 * Finds all the strongly connected components of the page graph. Every strongly
-//	 * connected component can be represented as an array containing the page URLs
-//	 * in the component. The return value is thus an array of strongly connected
-//	 * components. The order of elements in these arrays does not matter. Any output
-//	 * that contains all the strongly connected components is considered correct.
-//	 * 
-//	 * @return an array containing every strongly connected component.
-//	 */
-//	public String[][] getStronglyConnectedComponents();
-//
-//	/**
-//	 * Finds a Hamiltonian path in the page graph. There may be many possible
-//	 * Hamiltonian paths. Any of these paths is a correct output. This method should
-//	 * never be called on a graph with more than 20 vertices. If there is no
-//	 * Hamiltonian path, this method will return an empty array. The output array
-//	 * should contain the URLs of pages in a Hamiltonian path. The order matters, as
-//	 * the elements of the array represent this path in sequence. So the element [0]
-//	 * is the start of the path, and [1] is the next page, and so on.
-//	 * 
-//	 * @return a Hamiltonian path of the page graph.
-//	 */
-//	public String[] getHamiltonianPath();
-//}
 
 class Graph {
 
